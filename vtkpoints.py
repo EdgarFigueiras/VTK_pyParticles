@@ -3,10 +3,11 @@ import numpy as np
 import random
 import math
 import time
+import calculatecolors as colors
 
 #Class that allows the evolutionf of the simulation
 class vtkTimerCallback():
-    def __init__(self, path_data, num_particles, initial_step, ultimate_step, minim_Psi, maxim_Psi):
+    def __init__(self, path_data, num_particles, initial_step, ultimate_step, minim_Psi, maxim_Psi, info_):
         self.timer_count = 0
         self.path = path_data
         self.n_particles = num_particles
@@ -14,6 +15,7 @@ class vtkTimerCallback():
         self.max_Psi = maxim_Psi
         self.first_step = initial_step
         self.last_step = ultimate_step
+        self.info = info_
         
     def execute(self,obj,event):
         iren = obj
@@ -30,8 +32,13 @@ class vtkTimerCallback():
             else:
                 self.timer_count = 0
 
-        new_actor = create_actor(self.path, self.n_particles, self.timer_count + self.first_step, self.min_Psi, self.max_Psi)
-        renderer.AddViewProp(new_actor)
+        actor = create_actor(self.path, self.n_particles, self.timer_count + self.first_step, self.min_Psi, self.max_Psi)
+        renderer.AddViewProp(actor)
+        
+        #Shows function info
+        if(self.info > 1):
+            actor_functions = create_actor_fuctions(self.path, self.n_particles, self.timer_count + self.first_step, self.min_Psi, self.max_Psi)
+            renderer.AddViewProp(actor_functions)
         
         iren.GetRenderWindow().Render()
         print(self.timer_count + self.first_step)
@@ -39,46 +46,68 @@ class vtkTimerCallback():
         self.timer_count += 1
 
 
-def calculate_color_by_amplitude(amplitude, min, max):
-    #Colors array, from dark blue (Lowest probability) to dark red (Highest probability)
-    color = [0,0,0]
+# Creates the actor and returns it to be shown:
+# path -> The path where is stored the numpy array with the data
+# N -> Number of particles that will be used in the simulation
+# min -> min Psi value to generate the colour gradation
+# max -> max Psi value to generate the colour gradation
+def create_actor_fuctions(path, N, time_step, min, max):
+    #Use an auxiliar array to work with a variable number of points,
+    #allowing the user to make diferent points simulation with good results
+    array_data = np.zeros((N, 4))
 
-    colorArray = [
-        [0,0,130],
-        [0,0,200],
-        [0,0,255],
-        [0,40,255],
-        [0,90,255],
-        [0,153,255],
-        [1,212,255],
-        [38,255,210],
-        [96,255,150],
-        [134,255,115],
-        [177,255,71],
-        [228,255,20],
-        [255,211,0],
-        [255,163,0],
-        [255,100,0],
-        [255,60,0],
-        [245,10,0],
-        [200,0,0],
-        [155,0,0],
-        [131,0,0]
-    ];
-    
-    #Calculate the step to use the full range of colours between min and max psi values
-    #Calculate the amplitude to adjust the new steps.
-    #Amplitude_in_order_0-1 = (Amplitude - minPsi)/(maxPsi-minPsi)
-    x_ampl = (amplitude - min)/(max-min);
-    
-    #20 steps of colours, amplitude from 0.0 to 1.0
-    indexOfColor = math.floor(x_ampl / 0.05);
-    
-    color[0] = colorArray[indexOfColor][0];
-    color[1] = colorArray[indexOfColor][1];
-    color[2] = colorArray[indexOfColor][2];
+    array_3d = load_data(path)
 
-    return color
+    #Fill the auxiliar array with the data of the original one
+    for point_number in range (0, N):
+        array_data[point_number] = array_3d[time_step][point_number]
+    
+    
+    #Colors
+    Colors = vtk.vtkUnsignedCharArray();
+    Colors.SetNumberOfComponents(3);
+    Colors.SetName("Colors");
+
+    #plot
+    x_axis = np.zeros((N))
+    y_axis = np.zeros((N))
+    z_axis = np.zeros((N))
+    psi_axis = np.zeros((N))
+
+    # Generate point positions and insert in vtkPoints
+    color = [255,255,255]
+    points = vtk.vtkPoints()
+
+    #X axis function
+    for x in np.arange(0,N):
+        points.InsertNextPoint(array_data[x][0], array_data[x][3]*1000, -100.0)
+        #color = colors.calculate_color_by_amplitude(array_data[x][3], min, max)
+        Colors.InsertNextTuple3(color[0],color[1],color[2])
+
+    #Z axis function
+    for x in np.arange(0,N):
+        points.InsertNextPoint(array_data[x][0], -100,  array_data[x][2])
+        #color = colors.calculate_color_by_amplitude(array_data[x][3], min, max)
+        Colors.InsertNextTuple3(color[0],color[1],color[2])
+
+
+    polyData = vtk.vtkPolyData()
+    polyData.SetPoints(points)
+    polyData.GetPointData().SetScalars(Colors)
+
+    vertexFilter = vtk.vtkVertexGlyphFilter()
+    vertexFilter.SetInputData(polyData)
+    vertexFilter.Update()
+
+    mapper = vtk.vtkPolyDataMapper()
+    mapper.SetInputConnection(vertexFilter.GetOutputPort())
+    mapper.ScalarVisibilityOn()
+
+    actor = vtk.vtkActor()
+    actor.SetMapper(mapper)
+
+    return actor
+
 
 #File load, return the array with the 3dData of the selected path
 def load_data(path):
@@ -94,8 +123,8 @@ def load_data(path):
     return array_3d
 
 
-# Creates teh actor and returns it to be shown:
-# path -> The path where is stored the numoy array with the data
+# Creates the actor and returns it to be shown:
+# path -> The path where is stored the numpy array with the data
 # N -> Number of particles that will be used in the simulation
 # min -> min Psi value to generate the colour gradation
 # max -> max Psi value to generate the colour gradation
@@ -116,14 +145,14 @@ def create_actor(path, N, time_step, min, max):
     Colors.SetNumberOfComponents(3);
     Colors.SetName("Colors");
 
+
     # Generate point positions and insert in vtkPoints
     color = [0,0,0]
     points = vtk.vtkPoints()
     for x in np.arange(0,N):
         points.InsertNextPoint(array_data[x][0],array_data[x][1],array_data[x][2])
-        color = calculate_color_by_amplitude(array_data[x][3], min, max)
+        color = colors.calculate_color_by_amplitude(array_data[x][3], min, max)
         Colors.InsertNextTuple3(color[0],color[1],color[2])
-
 
     polyData = vtk.vtkPolyData()
     polyData.SetPoints(points)
@@ -152,7 +181,7 @@ def render_actors_list(actors_list):
         renderer.AddViewProp(actor)
 
     renderWindow = vtk.vtkRenderWindow()
-    renderWindow.SetSize(800,600)
+    renderWindow.SetSize(1600,1200)
     renderWindow.AddRenderer(renderer)
 
     renWinInteractor = vtk.vtkRenderWindowInteractor()
@@ -170,7 +199,7 @@ def render_actor(actor):
     renderer.AddViewProp(actor)
 
     renderWindow = vtk.vtkRenderWindow()
-    renderWindow.SetSize(800,600)
+    renderWindow.SetSize(1600,1200)
     renderWindow.AddRenderer(renderer)
 
     renWinInteractor = vtk.vtkRenderWindowInteractor()
@@ -183,11 +212,10 @@ def render_actor(actor):
 def render_actor_background(actor, r, g, b):
     renderer = vtk.vtkRenderer()
     renderer.SetBackground(r,g,b)
-    
     renderer.AddViewProp(actor)
     
     renderWindow = vtk.vtkRenderWindow()
-    renderWindow.SetSize(800,600)
+    renderWindow.SetSize(1600,1200)
     renderWindow.AddRenderer(renderer)
     
     renWinInteractor = vtk.vtkRenderWindowInteractor()
@@ -205,26 +233,38 @@ def render_actor_background(actor, r, g, b):
 # min_Psi -> minimum Psi value to represent the colors of the simulation
 # max_Psi -> maximum Psi value to represent the colors of the simulation
 # time_step -> time elapsed between steps, measured in miliseconds
-def render_simulation(path, n_particles, first_step, last_step, min_Psi, max_Psi, time_step):
-    actor = create_actor(path, n_particles, first_step, min_Psi, max_Psi)
+# info -> flag, 2==Print info and show functions in 3D view 1==Print info, 0==Dont show info
+def render_simulation(path, n_particles, first_step, last_step, min_Psi, max_Psi, time_step, info):
+    if (info>0):
+        print("path: ", path , "\n", "first step: ", first_step, "  last step: ", last_step)
+        print(" min_Psi: ", min_Psi, "  max_Psi: ", max_Psi, "  time_step: ", time_step, "ms")
     
+    actor = create_actor(path, n_particles, first_step, min_Psi, max_Psi)
+    actor_functions = create_actor_fuctions(path, n_particles, first_step, min_Psi, max_Psi)
+
     renderer = vtk.vtkRenderer()
     renderer.SetBackground(0,0,0)
-    renderer.AddViewProp(actor)
+
+    if (info>1):
+        renderer.AddViewProp(actor_functions)
+        renderer.AddViewProp(actor)
+
     renderWindow = vtk.vtkRenderWindow()
-    renderWindow.SetSize(800,600)
+    renderWindow.SetSize(1600,1200)
     renderWindow.AddRenderer(renderer)
+
     renWinInteractor = vtk.vtkRenderWindowInteractor()
     renWinInteractor.SetRenderWindow(renderWindow)
     renWinInteractor.Render()
     
+    print("Steps:")
     print(first_step)
     
     # Initialize must be called prior to creating timer events.
     renWinInteractor.Initialize()
         
     # Sign up to receive TimerEvent
-    timerCallback = vtkTimerCallback(path, n_particles, first_step + 1, last_step, min_Psi, max_Psi)
+    timerCallback = vtkTimerCallback(path, n_particles, first_step + 1, last_step, min_Psi, max_Psi, info)
     timerCallback.actor = actor
     renWinInteractor.AddObserver('TimerEvent', timerCallback.execute)
     timerId = renWinInteractor.CreateRepeatingTimer(time_step);
