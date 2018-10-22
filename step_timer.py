@@ -7,7 +7,15 @@ import actor_manage as actor_man
 import image_saver as img_save
 
 
-#Class that allows the evolutionf of the simulation
+# Class that allows the evolutionf of the simulation
+# Avances step by step, in loop if is window rendered and until the last step in image saving mode
+# path_data -> File path of the numpy array with the 3d data
+# num_particles -> number of particles that will be rendered in the simulation each step
+# initial_step -> starting step of the simulation
+# ultimate_step -> ending step of the simulation
+# minim_Psi -> minimum Psi value to represent the colors of the simulation
+# maxim_Psi -> maximum Psi value to represent the colors of the simulation
+# info_ -> flag, ==2 image save mode, !=2 windowed mode
 class vtkTimerCallback():
     def __init__(self, path_data, num_particles, initial_step, ultimate_step, minim_Psi, maxim_Psi, info_):
         self.timer_count = 0
@@ -29,7 +37,7 @@ class vtkTimerCallback():
 
         #Enables the loop to never stop the simulation, when reaches last step starts again
         if((self.timer_count + self.first_step) == self.last_step):
-            #If is saving images then stopswhen reaches the end without the loop
+            #If is saving images then stop swhen reaches the end without the loop
             if(self.info == 2):
                 iren.TerminateApp()
             else:

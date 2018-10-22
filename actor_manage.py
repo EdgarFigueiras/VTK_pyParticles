@@ -19,55 +19,6 @@ def load_data(path):
     return array_3d
 
 
-# Creates the actor and returns it to be shown:
-# path -> The path where is stored the numpy array with the data
-# N -> Number of particles that will be used in the simulation
-# min -> min Psi value to generate the colour gradation
-# max -> max Psi value to generate the colour gradation
-def create_actor(path, N, time_step, min, max):
-    #Use an auxiliar array to work with a variable number of points,
-    #allowing the user to make diferent points simulation with good results
-    array_data = np.zeros((N, 4))
-
-    array_3d = load_data(path)
-
-    #Fill the auxiliar array with the data of the original one
-    for point_number in range (0, N):
-        array_data[point_number] = array_3d[time_step][point_number]
-    
-    
-    #Colors
-    Colors = vtk.vtkUnsignedCharArray();
-    Colors.SetNumberOfComponents(3);
-    Colors.SetName("Colors");
-
-
-    # Generate point positions and insert in vtkPoints
-    color = [0,0,0]
-    points = vtk.vtkPoints()
-    for x in np.arange(0,N):
-        points.InsertNextPoint(array_data[x][0],array_data[x][1],array_data[x][2])
-        color = colors.calculate_color_by_amplitude(array_data[x][3], min, max)
-        Colors.InsertNextTuple3(color[0],color[1],color[2])
-
-    polyData = vtk.vtkPolyData()
-    polyData.SetPoints(points)
-    polyData.GetPointData().SetScalars(Colors)
-
-    vertexFilter = vtk.vtkVertexGlyphFilter()
-    vertexFilter.SetInputData(polyData)
-    vertexFilter.Update()
-
-    mapper = vtk.vtkPolyDataMapper()
-    mapper.SetInputConnection(vertexFilter.GetOutputPort())
-    mapper.ScalarVisibilityOn()
-
-    actor = vtk.vtkActor()
-    actor.SetMapper(mapper)
-
-    return actor
-
-
 #Renders multiple actors passed as a list
 def render_actors_list(actors_list):
     renderer = vtk.vtkRenderer()
@@ -119,3 +70,51 @@ def render_actor_background(actor, r, g, b):
     
     renderWindow.Render()
     renWinInteractor.Start()
+
+# Creates the actor and returns it to be shown:
+# path -> The path where is stored the numpy array with the data
+# N -> Number of particles that will be used in the simulation
+# min -> min Psi value to generate the colour gradation
+# max -> max Psi value to generate the colour gradation
+def create_actor(path, N, time_step, min, max):
+    #Use an auxiliar array to work with a variable number of points,
+    #allowing the user to make diferent points simulation with good results
+    array_data = np.zeros((N, 4))
+
+    array_3d = load_data(path)
+
+    #Fill the auxiliar array with the data of the original one
+    for point_number in range (0, N):
+        array_data[point_number] = array_3d[time_step][point_number]
+    
+    
+    #Colors
+    Colors = vtk.vtkUnsignedCharArray();
+    Colors.SetNumberOfComponents(3);
+    Colors.SetName("Colors");
+
+
+    # Generate point positions and insert in vtkPoints
+    color = [0,0,0]
+    points = vtk.vtkPoints()
+    for x in np.arange(0,N):
+        points.InsertNextPoint(array_data[x][0],array_data[x][1],array_data[x][2])
+        color = colors.calculate_color_by_amplitude(array_data[x][3], min, max)
+        Colors.InsertNextTuple3(color[0],color[1],color[2])
+
+    polyData = vtk.vtkPolyData()
+    polyData.SetPoints(points)
+    polyData.GetPointData().SetScalars(Colors)
+
+    vertexFilter = vtk.vtkVertexGlyphFilter()
+    vertexFilter.SetInputData(polyData)
+    vertexFilter.Update()
+
+    mapper = vtk.vtkPolyDataMapper()
+    mapper.SetInputConnection(vertexFilter.GetOutputPort())
+    mapper.ScalarVisibilityOn()
+
+    actor = vtk.vtkActor()
+    actor.SetMapper(mapper)
+
+    return actor
