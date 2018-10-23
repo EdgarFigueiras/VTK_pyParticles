@@ -2,7 +2,7 @@ import vtk
 import numpy as np
 import random
 import math
-import time
+import time as tm
 import multiprocessing
 from multiprocessing import Process
 import actor_manage as actor_man
@@ -111,8 +111,11 @@ def render_simulation_images(path, n_particles, first_step, last_step, min_Psi, 
 # max_Psi -> maximum Psi value to represent the colors of the simulation
 # time_step -> time elapsed between steps, measured in miliseconds
 # info -> flag, 1==Print info, 0==Dont show info
-# thread_number -> number of the thread
-def render_simulation_for_multiprocess(path, n_particles, first_step, last_step, min_Psi, max_Psi, time_step, info, thread_number):
+# thread_number -> id of the process
+def render_simulation_for_multiprocess(path, n_particles, first_step, last_step, min_Psi, max_Psi, time_step, info, process_number):
+    
+    #start_time = tm.time()
+   
     if (info>0):
         print("path: ", path , "\n", "first step: ", first_step, "  last step: ", last_step)
         print(" min_Psi: ", min_Psi, "  max_Psi: ", max_Psi, "  time_step: ", time_step, "ms")
@@ -128,7 +131,6 @@ def render_simulation_for_multiprocess(path, n_particles, first_step, last_step,
     renWinInteractor = vtk.vtkRenderWindowInteractor()
 
     for actual_step in range(0,total_steps):
-
         actor = actor_man.create_actor(path, n_particles, actual_step + first_step, min_Psi, max_Psi)
         renderer.AddViewProp(actor)
 
@@ -138,26 +140,20 @@ def render_simulation_for_multiprocess(path, n_particles, first_step, last_step,
         renWinInteractor.Render()
         renWinInteractor.Initialize()
 
-        print(actual_step + first_step,  "Thread: ", thread_number)
+        print("Pr:", process_number, "  Step:", actual_step + first_step  )
     
         img_save.save_image(renderer, actual_step + first_step)
         renderer.RemoveAllViewProps()
-    
-    # Initialize must be called prior to creating timer events.
-    
-    '''
-    renWinInteractor.Initialize()
-    
-    # Sign up to receive TimerEvent
-    timerCallback = vtkTimerCallback(path, n_particles, first_step + 1, last_step, min_Psi, max_Psi, 2)
-    timerCallback.actor = actor
-    renWinInteractor.AddObserver('TimerEvent', timerCallback.execute)
-    timerId = renWinInteractor.CreateRepeatingTimer(time_step);
 
-    renWinInteractor.Start()
-    '''
+    #elapsed_time = tm.time() - start_time
+
+    #print("Time elapsed: ", elapsed_time)
+
 
 #Renders the simulation of the file passed and saves it as image
+# Works as a decorator to enable adapted multiprocess flow
+# Calculates the number of processes that will be used and distribute
+#   using an balanced algorith with a calculation of the steps per process
 # path -> File path of the numpy array with the 3d data
 # n_particles -> number of particles that will be rendered in the simulation each step
 # first_step -> starting step of the simulation
@@ -167,9 +163,15 @@ def render_simulation_for_multiprocess(path, n_particles, first_step, last_step,
 # time_step -> time elapsed between steps, measured in miliseconds
 # info -> flag, 1==Print info, 0==Dont show info
 def render_simulation_images_multiprocess(path, n_particles, first_step, last_step, min_Psi, max_Psi, time_step, info):
+
     #print("Number of cpu : ", multiprocessing.cpu_count())
+    #Calculates the number of cpus
     number_processors = multiprocessing.cpu_count()
+    
+    #Calculations to balance the work between process
+    #Total steps of the simulation
     total_steps = last_step - first_step
+    #Steps that will be done by each process
     steps_per_process = math.floor (total_steps / number_processors)
     print("Total steps : ", total_steps)
     print("Steps per process : ", steps_per_process)
@@ -177,6 +179,7 @@ def render_simulation_images_multiprocess(path, n_particles, first_step, last_st
     start_step = first_step
     finish_step = first_step + steps_per_process
     
+    #Loop that launch the process with the amount of work balanced
     for num_process in range (0,number_processors):
         if (num_process == number_processors - 1):
             finish_step = last_step
