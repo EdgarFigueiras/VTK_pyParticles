@@ -116,9 +116,9 @@ def render_simulation_for_multiprocess(path, n_particles, first_step, last_step,
     
     #start_time = tm.time()
    
-    if (info>0):
-        print("path: ", path , "\n", "first step: ", first_step, "  last step: ", last_step)
-        print(" min_Psi: ", min_Psi, "  max_Psi: ", max_Psi, "  time_step: ", time_step, "ms")
+    #if (info>0):
+    #    print("path: ", path , "\n", "first step: ", first_step, "  last step: ", last_step)
+    #    print(" min_Psi: ", min_Psi, "  max_Psi: ", max_Psi, "  time_step: ", time_step, "ms")
     
     total_steps = last_step - first_step + 1
     
@@ -139,8 +139,8 @@ def render_simulation_for_multiprocess(path, n_particles, first_step, last_step,
         renWinInteractor.SetRenderWindow(renderWindow)
         renWinInteractor.Render()
         renWinInteractor.Initialize()
-
-        print("Pr:", process_number, "  Step:", actual_step + first_step  )
+        if (info>0):
+            print("Pr:", process_number, "  Step:", actual_step + first_step  )
     
         img_save.save_image(renderer, actual_step + first_step)
         renderer.RemoveAllViewProps()
@@ -172,7 +172,7 @@ def render_simulation_images_multiprocess(path, n_particles, first_step, last_st
     #Total steps of the simulation
     total_steps = last_step - first_step
     #Steps that will be done by each process
-    steps_per_process = math.floor (total_steps / number_processors)
+    steps_per_process = round(total_steps / number_processors)
     print("Total steps : ", total_steps)
     print("Steps per process : ", steps_per_process)
     procs = []
@@ -183,7 +183,7 @@ def render_simulation_images_multiprocess(path, n_particles, first_step, last_st
     for num_process in range (0,number_processors):
         if (num_process == number_processors - 1):
             finish_step = last_step
-        print("Start step : ", start_step, "  finish_step: ", finish_step)
+        print("Process:", num_process, " Start step:", start_step, "  finish_step:", finish_step)
         proc = Process(target=render_simulation_for_multiprocess, args=(path, n_particles, start_step, finish_step, min_Psi, max_Psi, time_step, info, num_process))
         procs.append(proc)
         proc.start()
