@@ -27,8 +27,13 @@ def render_simulation(path, n_particles, first_step, last_step, min_Psi, max_Psi
     actor = actor_man.create_actor(path, n_particles, first_step, min_Psi, max_Psi)
 
     renderer = vtk.vtkOpenGLRenderer()
-    renderer.SetBackground(0,0,0)
+    renderer.SetBackground(255,255,255)
     renderer.AddViewProp(actor)
+
+    cubeActor = actor_man.create_cube_actor()
+    renderer.AddViewProp(cubeActor)
+    cubeActor = actor_man.cube_axes()
+    renderer.AddViewProp(cubeActor)
 
     renderWindow = vtk.vtkRenderWindow()
     renderWindow.SetSize(1600,1200)
@@ -40,6 +45,7 @@ def render_simulation(path, n_particles, first_step, last_step, min_Psi, max_Psi
     
     print("Steps:")
     print(first_step)
+
     
     # Initialize must be called prior to creating timer events.
     renWinInteractor.Initialize()
@@ -70,8 +76,14 @@ def render_simulation_images(path, n_particles, first_step, last_step, min_Psi, 
     actor = actor_man.create_actor(path, n_particles, first_step, min_Psi, max_Psi)
 
     renderer = vtk.vtkOpenGLRenderer()
-    renderer.SetBackground(0,0,0)
+    renderer.SetBackground(255,255,255)
     renderer.AddViewProp(actor)
+    
+    #Add cube to the render
+    cubeActor = actor_man.create_cube_actor()
+    renderer.AddViewProp(cubeActor)
+    cubeActor = actor_man.cube_axes()
+    renderer.AddViewProp(cubeActor)
 
     renderWindow = vtk.vtkRenderWindow()
     renderWindow.SetSize(1600,1200)
@@ -109,10 +121,9 @@ def render_simulation_images(path, n_particles, first_step, last_step, min_Psi, 
 # last_step -> ending step of the simulation
 # min_Psi -> minimum Psi value to represent the colors of the simulation
 # max_Psi -> maximum Psi value to represent the colors of the simulation
-# time_step -> time elapsed between steps, measured in miliseconds
 # info -> flag, 1==Print info, 0==Dont show info
-# thread_number -> id of the process
-def render_simulation_for_multiprocess(path, n_particles, first_step, last_step, min_Psi, max_Psi, time_step, info, process_number):
+# process_number -> Id of the process executing this function
+def render_simulation_for_multiprocess(path, n_particles, first_step, last_step, min_Psi, max_Psi, info, process_number):
     
     #start_time = tm.time()
    
@@ -123,7 +134,7 @@ def render_simulation_for_multiprocess(path, n_particles, first_step, last_step,
     total_steps = last_step - first_step + 1
     
     renderer = vtk.vtkOpenGLRenderer()
-    renderer.SetBackground(0,0,0)
+    renderer.SetBackground(255,255,255)
     renderWindow = vtk.vtkRenderWindow()
     renderWindow.SetSize(1600,1200)
     #Disables the 3D render window
@@ -133,6 +144,11 @@ def render_simulation_for_multiprocess(path, n_particles, first_step, last_step,
     for actual_step in range(0,total_steps):
         actor = actor_man.create_actor(path, n_particles, actual_step + first_step, min_Psi, max_Psi)
         renderer.AddViewProp(actor)
+        #Add cube to the render
+        cubeActor = actor_man.create_cube_actor()
+        renderer.AddViewProp(cubeActor)
+        cubeActor = actor_man.cube_axes()
+        renderer.AddViewProp(cubeActor)
 
         renderWindow.AddRenderer(renderer)
 
@@ -153,16 +169,15 @@ def render_simulation_for_multiprocess(path, n_particles, first_step, last_step,
 #Renders the simulation of the file passed and saves it as image
 # Works as a decorator to enable adapted multiprocess flow
 # Calculates the number of processes that will be used and distribute
-#   using an balanced algorith with a calculation of the steps per process
+#   using an balanced algorithm with a calculation of the steps per process
 # path -> File path of the numpy array with the 3d data
 # n_particles -> number of particles that will be rendered in the simulation each step
 # first_step -> starting step of the simulation
 # last_step -> ending step of the simulation
 # min_Psi -> minimum Psi value to represent the colors of the simulation
 # max_Psi -> maximum Psi value to represent the colors of the simulation
-# time_step -> time elapsed between steps, measured in miliseconds
 # info -> flag, 1==Print info, 0==Dont show info
-def render_simulation_images_multiprocess(path, n_particles, first_step, last_step, min_Psi, max_Psi, time_step, info):
+def render_simulation_images_multiprocess(path, n_particles, first_step, last_step, min_Psi, max_Psi, info):
 
     #print("Number of cpu : ", multiprocessing.cpu_count())
     #Calculates the number of cpus
@@ -184,7 +199,7 @@ def render_simulation_images_multiprocess(path, n_particles, first_step, last_st
         if (num_process == number_processors - 1):
             finish_step = last_step
         print("Process:", num_process, " Start step:", start_step, "  finish_step:", finish_step)
-        proc = Process(target=render_simulation_for_multiprocess, args=(path, n_particles, start_step, finish_step, min_Psi, max_Psi, time_step, info, num_process))
+        proc = Process(target=render_simulation_for_multiprocess, args=(path, n_particles, start_step, finish_step, min_Psi, max_Psi, info, num_process))
         procs.append(proc)
         proc.start()
         start_step =  finish_step + 1

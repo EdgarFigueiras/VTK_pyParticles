@@ -8,7 +8,7 @@ import image_saver as img_save
 
 
 # Class that allows the evolutionf of the simulation
-# Avances step by step, in loop if is window rendered and until the last step in image saving mode
+# Advances step by step, in loop if is window rendered and until the last step in image saving mode
 # path_data -> File path of the numpy array with the 3d data
 # num_particles -> number of particles that will be rendered in the simulation each step
 # initial_step -> starting step of the simulation
@@ -48,6 +48,18 @@ class vtkTimerCallback():
     
         actor = actor_man.create_actor(self.path, self.n_particles, self.timer_count + self.first_step, self.min_Psi, self.max_Psi)
         renderer.AddViewProp(actor)
+        
+        cubeActor = actor_man.cube_axes()
+        renderer.AddViewProp(cubeActor)
+        cubeActor = actor_man.create_cube_actor()
+        renderer.AddViewProp(cubeActor)
+        
+        camera_position = renderer.GetActiveCamera().GetPosition()
+        #camera_focal = renderer.GetActiveCamera().GetFocalPoint()
+        #camera_view = renderer.GetActiveCamera().GetViewUp()
+
+        print("Camera position")
+        print(str(camera_position))
     
         if(self.info == 2):
             img_save.save_image(renderer, self.timer_count + self.first_step)

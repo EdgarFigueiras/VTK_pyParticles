@@ -13,7 +13,7 @@ def load_data(path):
     #Gets the binary data as an array
     array_with_all_data = np.load(file_with_binary_data)
 
-    #Matrix with the data of the 2D grid
+    #Matrix with the data of the 3D grid
     array_3d = array_with_all_data['arr_0']
 
     return array_3d
@@ -28,7 +28,7 @@ def render_actors_list(actors_list):
         renderer.AddViewProp(actor)
 
     renderWindow = vtk.vtkRenderWindow()
-    renderWindow.SetSize(1600,1200)
+    renderWindow.SetSize(1280,720)
     renderWindow.AddRenderer(renderer)
 
     renWinInteractor = vtk.vtkRenderWindowInteractor()
@@ -46,7 +46,7 @@ def render_actor(actor):
     renderer.AddViewProp(actor)
 
     renderWindow = vtk.vtkRenderWindow()
-    renderWindow.SetSize(1600,1200)
+    renderWindow.SetSize(1280,720)
     renderWindow.AddRenderer(renderer)
 
     renWinInteractor = vtk.vtkRenderWindowInteractor()
@@ -55,14 +55,14 @@ def render_actor(actor):
     renderWindow.Render()
     renWinInteractor.Start()
 
-#Renders the actor passed and sets the bacground color using r,g,b passed values
+#Renders the actor passed and sets the background color using r,g,b passed values
 def render_actor_background(actor, r, g, b):
     renderer = vtk.vtkRenderer()
     renderer.SetBackground(r,g,b)
     renderer.AddViewProp(actor)
     
     renderWindow = vtk.vtkRenderWindow()
-    renderWindow.SetSize(1600,1200)
+    renderWindow.SetSize(1280,720)
     renderWindow.AddRenderer(renderer)
     
     renWinInteractor = vtk.vtkRenderWindowInteractor()
@@ -118,3 +118,51 @@ def create_actor(path, N, time_step, min, max):
     actor.SetMapper(mapper)
 
     return actor
+
+
+#Creates a wired cube as an actor and returns it to be used
+def create_cube_actor():
+    cube = vtk.vtkCubeSource()
+    cube.SetXLength(50.0)
+    cube.SetYLength(50.0)
+    cube.SetZLength(50.0)
+    cubeMapper = vtk.vtkPolyDataMapper()
+    cubeMapper.SetInputConnection(cube.GetOutputPort())
+    cubeActor = vtk.vtkActor()
+    cubeActor.SetMapper(cubeMapper)
+    cubeActor.SetPosition(0.0, 0, 0)
+    cubeActor.GetProperty().SetColor(0, 0, 0)
+    cubeActor.GetProperty().SetRepresentationToWireframe()
+    
+    
+    return cubeActor
+
+
+#Creates a dynamic grid with the size of the simulation
+#Te size of the grid is imposed by the cube generated in the first steps
+def cube_axes():
+    render = vtk.vtkRenderer()
+
+    cube = vtk.vtkCubeSource()
+    cube.SetXLength(50.0)
+    cube.SetYLength(50.0)
+    cube.SetZLength(50.0)
+
+    # Create a text property for both cube axes
+    tprop = vtk.vtkTextProperty()
+    tprop.SetColor(0, 0, 0)
+    tprop.ShadowOn()
+
+    # Create a vtkCubeAx   esActor2D.  Use the outer edges of the bounding box to
+    # draw the axes.  Add the actor to the renderer.
+    axes = vtk.vtkCubeAxesActor2D()
+    axes.SetInputConnection(cube.GetOutputPort())
+    axes.SetCamera(render.GetActiveCamera())
+    axes.SetLabelFormat("%6.4g")
+    axes.SetFlyModeToOuterEdges()
+    axes.SetFontFactor(0.8)
+    axes.SetAxisTitleTextProperty(tprop)
+    axes.SetAxisLabelTextProperty(tprop)
+    axes.GetProperty().SetColor(0.0, 0.0, 0.0)
+    
+    return axes

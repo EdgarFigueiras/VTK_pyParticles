@@ -30,10 +30,18 @@ def calculate_color_by_amplitude(amplitude, min, max):
     #Calculate the step to use the full range of colours between min and max psi values
     #Calculate the amplitude to adjust the new steps.
     #Amplitude_in_order_0-1 = (Amplitude - minPsi)/(maxPsi-minPsi)
+    
+    #print("x_ampl = ", amplitude, "-", min, "/(", max , "-", min, ")" )
     x_ampl = (amplitude - min)/(max-min);
-        
+    
     #20 steps of colours, amplitude from 0.0 to 1.0
     indexOfColor = math.floor(x_ampl / 0.05);
+    
+    if (indexOfColor > 19):
+        indexOfColor = 19
+    
+    #print("indexOfColor = ", indexOfColor)
+    
                   
     color[0] = colorArray[indexOfColor][0];
     color[1] = colorArray[indexOfColor][1];
