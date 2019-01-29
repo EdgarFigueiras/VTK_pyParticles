@@ -5,28 +5,45 @@ import vtkpoints as vtkp
 #Gauss  30
 #DarkM  100¿?
 
-#actor = vtkp.create_actor("./Cav3dData.3d", 100000, 25, 0, 0.05)
 
-#vtkp.render_actor_background(actor, 0.0, 0.0, 0.0)
+#def render_simulation(path, n_particles, first_step, last_step, min_Psi, max_Psi, time_step, particles_size, cube_size, info)
 
-#vtkp.render_simulation("./caviton.3d", 100000, 0, 100, 0, 1, 3000, 1)
+#def render_simulation_images_multiprocess(path, n_particles, first_step, last_step, min_Psi, max_Psi, particles_size, cube_size, x_camera, y_camera, z_camera, info)
 
-#vtkp.render_simulation_images_multiprocess("./caviton.3d", 100000, 0, 100, 0.0, 1, 1)
+#vtkp.render_simulation("vortex_barrier30k.3d", 30000, 0, 200, 0, 0.05, 3000, 2, 50, 1)
 
-#vtkp.render_simulation_images_multiprocess("./gauss.3d", 100000, 0, 30, 0.0, 0.3, 1)
+#vtkp.render_simulation_images_multiprocess("vortex_barrier50k.3d", 50000, 0, 200, 0, 0.05, 2, 50, -105, 95, 110,  1)
 
-#vtkp.render_simulation("./py_3dData.3d", 100000, 0, 100, 0, 1, 3000, 1)
+#vtkp.render_simulation("soliton_barrera50k.3d", 30000, 190, 200, 0, 0.05, 3000, 2, 100, 1)
 
-#vtkp.render_simulation_images_multiprocess("./py_3dData.3d", 100000, 0, 100, 0.0, 1, 1)
+#vtkp.render_simulation_images_multiprocess("soliton_barrera50k.3d", 50000, 0, 200, 0, 0.05, 2, 50, -105, 95, 110,  1)
 
-#vtkp.render_simulation("Vort3dData.3d", 100000, 0, 57, 0, 1, 3000, 1)
+#Camera vortex_barrier [-105, 95, 110], [0, 0, 1]
+#Camera soliton_barrier [-227, 130, -180], [0.210064, 0.9538159, 0.214727]
 
-#vtkp.render_simulation_images_multiprocess("./Vort3dData.3d", 100000, 0, 57, 0.0, 1, 1)
 
-#vtkp.render_simulation("darkmat.3d", 100000, 0, 100, 0, 1, 3000, 1)
+path = "soliton_barrera50k.3d"
+n_particles = 50000
+first_step = 0
+last_step = 200
+min_Psi = 0
+max_Psi = 0.05
+particles_size = 3
+cube_size = 95
+camera = [-227, 130, -180]
+view = [0.210064, 0.9538159, 0.214727]
+y_camera = 130
+z_camera = -180
+info = 1
+time_step = 3000
 
-#vtkp.render_simulation_images_multiprocess("./Vort3dData.3d", 100000, 0, 57, 0.0, 1, 1)
+vtkp.render_simulation_images_multiprocess(path, n_particles, first_step, last_step, min_Psi, max_Psi, particles_size, cube_size, camera, view, info)
 
-#vtkp.render_simulation("vortex_barrier30k.3d", 30000, 0, 200, 0, 0.05, 3000, 1)
+#vtkp.render_simulation(path, n_particles, first_step, last_step, min_Psi, max_Psi, time_step, particles_size, cube_size, info)
 
-vtkp.render_simulation_images_multiprocess("vortex_barrier30k.3d", 30000, 0, 200, 0, 0.05, 1)
+
+
+
+
+
+

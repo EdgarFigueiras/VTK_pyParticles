@@ -19,20 +19,20 @@ from step_timer import vtkTimerCallback
 # max_Psi -> maximum Psi value to represent the colors of the simulation
 # time_step -> time elapsed between steps, measured in miliseconds
 # info -> flag, 1==Print info, 0==Dont show info
-def render_simulation(path, n_particles, first_step, last_step, min_Psi, max_Psi, time_step, info):
+def render_simulation(path, n_particles, first_step, last_step, min_Psi, max_Psi, time_step, particles_size, cube_size, info):
     if (info>0):
         print("path: ", path , "\n", "first step: ", first_step, "  last step: ", last_step)
         print(" min_Psi: ", min_Psi, "  max_Psi: ", max_Psi, "  time_step: ", time_step, "ms")
     
-    actor = actor_man.create_actor(path, n_particles, first_step, min_Psi, max_Psi)
+    actor = actor_man.create_actor(path, n_particles, first_step, min_Psi, max_Psi, particles_size)
 
     renderer = vtk.vtkOpenGLRenderer()
     renderer.SetBackground(255,255,255)
     renderer.AddViewProp(actor)
 
-    cubeActor = actor_man.create_cube_actor()
+    cubeActor = actor_man.create_cube_actor(cube_size)
     renderer.AddViewProp(cubeActor)
-    cubeActor = actor_man.cube_axes()
+    cubeActor = actor_man.cube_axes(cube_size)
     renderer.AddViewProp(cubeActor)
 
     renderWindow = vtk.vtkRenderWindow()
@@ -51,61 +51,7 @@ def render_simulation(path, n_particles, first_step, last_step, min_Psi, max_Psi
     renWinInteractor.Initialize()
         
     # Sign up to receive TimerEvent
-    timerCallback = vtkTimerCallback(path, n_particles, first_step + 1, last_step, min_Psi, max_Psi, info)
-    timerCallback.actor = actor
-    renWinInteractor.AddObserver('TimerEvent', timerCallback.execute)
-    timerId = renWinInteractor.CreateRepeatingTimer(time_step);
-
-    renWinInteractor.Start()
-
-
-#Renders the simulation of the file passed and saves it as image
-# path -> File path of the numpy array with the 3d data
-# n_particles -> number of particles that will be rendered in the simulation each step
-# first_step -> starting step of the simulation
-# last_step -> ending step of the simulation
-# min_Psi -> minimum Psi value to represent the colors of the simulation
-# max_Psi -> maximum Psi value to represent the colors of the simulation
-# time_step -> time elapsed between steps, measured in miliseconds
-# info -> flag, 1==Print info, 0==Dont show info
-def render_simulation_images(path, n_particles, first_step, last_step, min_Psi, max_Psi, time_step, info):
-    if (info>0):
-        print("path: ", path , "\n", "first step: ", first_step, "  last step: ", last_step)
-        print(" min_Psi: ", min_Psi, "  max_Psi: ", max_Psi, "  time_step: ", time_step, "ms")
-    
-    actor = actor_man.create_actor(path, n_particles, first_step, min_Psi, max_Psi)
-
-    renderer = vtk.vtkOpenGLRenderer()
-    renderer.SetBackground(255,255,255)
-    renderer.AddViewProp(actor)
-    
-    #Add cube to the render
-    cubeActor = actor_man.create_cube_actor()
-    renderer.AddViewProp(cubeActor)
-    cubeActor = actor_man.cube_axes()
-    renderer.AddViewProp(cubeActor)
-
-    renderWindow = vtk.vtkRenderWindow()
-    renderWindow.SetSize(1600,1200)
-    #Disables the 3D render window
-    renderWindow.SetOffScreenRendering(1);
-    renderWindow.AddRenderer(renderer)
-
-    renWinInteractor = vtk.vtkRenderWindowInteractor()
-    renWinInteractor.SetRenderWindow(renderWindow)
-    renWinInteractor.Render()
-    renWinInteractor.Initialize()
-    
-    print("Steps:")
-    print(first_step)
-    
-    img_save.save_image(renderer, first_step)
-    
-    # Initialize must be called prior to creating timer events.
-    renWinInteractor.Initialize()
-    
-    # Sign up to receive TimerEvent
-    timerCallback = vtkTimerCallback(path, n_particles, first_step + 1, last_step, min_Psi, max_Psi, 2)
+    timerCallback = vtkTimerCallback(path, n_particles, first_step + 1, last_step, min_Psi, max_Psi, particles_size, cube_size, info)
     timerCallback.actor = actor
     renWinInteractor.AddObserver('TimerEvent', timerCallback.execute)
     timerId = renWinInteractor.CreateRepeatingTimer(time_step);
@@ -123,7 +69,7 @@ def render_simulation_images(path, n_particles, first_step, last_step, min_Psi, 
 # max_Psi -> maximum Psi value to represent the colors of the simulation
 # info -> flag, 1==Print info, 0==Dont show info
 # process_number -> Id of the process executing this function
-def render_simulation_for_multiprocess(path, n_particles, first_step, last_step, min_Psi, max_Psi, info, process_number):
+def render_simulation_for_multiprocess(path, n_particles, first_step, last_step, min_Psi, max_Psi, particles_size, cube_size, camera, view, info, process_number):
     
     #start_time = tm.time()
    
@@ -142,13 +88,13 @@ def render_simulation_for_multiprocess(path, n_particles, first_step, last_step,
     renWinInteractor = vtk.vtkRenderWindowInteractor()
 
     for actual_step in range(0,total_steps):
-        actor = actor_man.create_actor(path, n_particles, actual_step + first_step, min_Psi, max_Psi)
+        actor = actor_man.create_actor(path, n_particles, actual_step + first_step, min_Psi, max_Psi, particles_size)
         renderer.AddViewProp(actor)
         #Add cube to the render
-        cubeActor = actor_man.create_cube_actor()
+        cubeActor = actor_man.create_cube_actor(cube_size)
         renderer.AddViewProp(cubeActor)
-        cubeActor = actor_man.cube_axes()
-        renderer.AddViewProp(cubeActor)
+        cubeAxes = actor_man.cube_axes(cube_size)
+        renderer.AddViewProp(cubeAxes)
 
         renderWindow.AddRenderer(renderer)
 
@@ -158,7 +104,7 @@ def render_simulation_for_multiprocess(path, n_particles, first_step, last_step,
         if (info>0):
             print("Pr:", process_number, "  Step:", actual_step + first_step  )
     
-        img_save.save_image(renderer, actual_step + first_step)
+        img_save.save_image_camera_setup(renderer, actual_step + first_step, camera, view)
         renderer.RemoveAllViewProps()
 
     #elapsed_time = tm.time() - start_time
@@ -177,7 +123,7 @@ def render_simulation_for_multiprocess(path, n_particles, first_step, last_step,
 # min_Psi -> minimum Psi value to represent the colors of the simulation
 # max_Psi -> maximum Psi value to represent the colors of the simulation
 # info -> flag, 1==Print info, 0==Dont show info
-def render_simulation_images_multiprocess(path, n_particles, first_step, last_step, min_Psi, max_Psi, info):
+def render_simulation_images_multiprocess(path, n_particles, first_step, last_step, min_Psi, max_Psi, particles_size, cube_size, camera, view, info):
 
     #print("Number of cpu : ", multiprocessing.cpu_count())
     #Calculates the number of cpus
@@ -199,7 +145,7 @@ def render_simulation_images_multiprocess(path, n_particles, first_step, last_st
         if (num_process == number_processors - 1):
             finish_step = last_step
         print("Process:", num_process, " Start step:", start_step, "  finish_step:", finish_step)
-        proc = Process(target=render_simulation_for_multiprocess, args=(path, n_particles, start_step, finish_step, min_Psi, max_Psi, info, num_process))
+        proc = Process(target=render_simulation_for_multiprocess, args=(path, n_particles, start_step, finish_step, min_Psi, max_Psi, particles_size, cube_size, camera, view, info, num_process))
         procs.append(proc)
         proc.start()
         start_step =  finish_step + 1

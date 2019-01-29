@@ -76,7 +76,7 @@ def render_actor_background(actor, r, g, b):
 # N -> Number of particles that will be used in the simulation
 # min -> min Psi value to generate the colour gradation
 # max -> max Psi value to generate the colour gradation
-def create_actor(path, N, time_step, min, max):
+def create_actor(path, N, time_step, min, max, particles_size):
     #Use an auxiliar array to work with a variable number of points,
     #allowing the user to make diferent points simulation with good results
     array_data = np.zeros((N, 4))
@@ -116,16 +116,18 @@ def create_actor(path, N, time_step, min, max):
 
     actor = vtk.vtkActor()
     actor.SetMapper(mapper)
+    #Point size
+    actor.GetProperty().SetPointSize(particles_size)
 
     return actor
 
 
 #Creates a wired cube as an actor and returns it to be used
-def create_cube_actor():
+def create_cube_actor(size):
     cube = vtk.vtkCubeSource()
-    cube.SetXLength(50.0)
-    cube.SetYLength(50.0)
-    cube.SetZLength(50.0)
+    cube.SetXLength(size)
+    cube.SetYLength(size)
+    cube.SetZLength(size)
     cubeMapper = vtk.vtkPolyDataMapper()
     cubeMapper.SetInputConnection(cube.GetOutputPort())
     cubeActor = vtk.vtkActor()
@@ -140,13 +142,13 @@ def create_cube_actor():
 
 #Creates a dynamic grid with the size of the simulation
 #Te size of the grid is imposed by the cube generated in the first steps
-def cube_axes():
+def cube_axes(size):
     render = vtk.vtkRenderer()
 
     cube = vtk.vtkCubeSource()
-    cube.SetXLength(50.0)
-    cube.SetYLength(50.0)
-    cube.SetZLength(50.0)
+    cube.SetXLength(size)
+    cube.SetYLength(size)
+    cube.SetZLength(size)
 
     # Create a text property for both cube axes
     tprop = vtk.vtkTextProperty()

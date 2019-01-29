@@ -17,7 +17,7 @@ import image_saver as img_save
 # maxim_Psi -> maximum Psi value to represent the colors of the simulation
 # info_ -> flag, ==2 image save mode, !=2 windowed mode
 class vtkTimerCallback():
-    def __init__(self, path_data, num_particles, initial_step, ultimate_step, minim_Psi, maxim_Psi, info_):
+    def __init__(self, path_data, num_particles, initial_step, ultimate_step, minim_Psi, maxim_Psi, parti_size, cub_size, info_):
         self.timer_count = 0
         self.path = path_data
         self.n_particles = num_particles
@@ -25,6 +25,8 @@ class vtkTimerCallback():
         self.max_Psi = maxim_Psi
         self.first_step = initial_step
         self.last_step = ultimate_step
+        self.particles_size = parti_size
+        self.cube_size = cub_size
         self.info = info_
         
     def execute(self,obj,event):
@@ -46,20 +48,23 @@ class vtkTimerCallback():
                 else:
                     self.timer_count = 0
     
-        actor = actor_man.create_actor(self.path, self.n_particles, self.timer_count + self.first_step, self.min_Psi, self.max_Psi)
+        actor = actor_man.create_actor(self.path, self.n_particles, self.timer_count + self.first_step, self.min_Psi, self.max_Psi, self.particles_size)
         renderer.AddViewProp(actor)
         
-        cubeActor = actor_man.cube_axes()
+        cubeActor = actor_man.cube_axes(self.cube_size)
         renderer.AddViewProp(cubeActor)
-        cubeActor = actor_man.create_cube_actor()
+        cubeActor = actor_man.create_cube_actor(self.cube_size)
         renderer.AddViewProp(cubeActor)
         
         camera_position = renderer.GetActiveCamera().GetPosition()
-        #camera_focal = renderer.GetActiveCamera().GetFocalPoint()
-        #camera_view = renderer.GetActiveCamera().GetViewUp()
+        camera_focal = renderer.GetActiveCamera().GetFocalPoint()
+        camera_view = renderer.GetActiveCamera().GetViewUp()
 
         print("Camera position")
         print(str(camera_position))
+        print(str(camera_focal))
+        print(str(camera_view))
+        
     
         if(self.info == 2):
             img_save.save_image(renderer, self.timer_count + self.first_step)
