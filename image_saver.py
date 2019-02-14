@@ -41,3 +41,21 @@ def save_image_camera_setup(renderer, step, camera, view):
         os.makedirs(directory)
     writer.SetFileName("./rendered_images/" + str(step) + ".png")
     writer.Write()
+
+#Object saving function
+def export_image(renderer, step):
+    dir = "./rendered_objects/"
+    if not os.path.exists(dir):
+        os.makedirs(dir)
+    renWin = vtk.vtkRenderWindow()
+
+    exporter = vtk.vtkX3DExporter()
+    exporter.SetFileName("testX3DExporter.x3d")
+    exporter.SetInput(renWin)
+    exporter.Update()
+    exporter.Write()
+
+
+
+
+

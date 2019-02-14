@@ -4,6 +4,9 @@ import random
 import math
 import calculatecolors as colors
 
+bg_color = 255
+cube_color = 0
+layer_color = 0 #(0-1)
 
 #File load, return the array with the 3dData of the selected path
 def load_data(path):
@@ -22,13 +25,13 @@ def load_data(path):
 #Renders multiple actors passed as a list
 def render_actors_list(actors_list):
     renderer = vtk.vtkRenderer()
-    renderer.SetBackground(0,0,0)
+    renderer.SetBackground(bg_color,bg_color,bg_color)
     
     for actor in actors_list:
         renderer.AddViewProp(actor)
 
     renderWindow = vtk.vtkRenderWindow()
-    renderWindow.SetSize(1280,720)
+    renderWindow.SetSize(2048,1536)
     renderWindow.AddRenderer(renderer)
 
     renWinInteractor = vtk.vtkRenderWindowInteractor()
@@ -41,12 +44,12 @@ def render_actors_list(actors_list):
 #Renders the actor passed
 def render_actor(actor):
     renderer = vtk.vtkRenderer()
-    renderer.SetBackground(0,0,0)
+    renderer.SetBackground(bg_color,bg_color,bg_color)
 
     renderer.AddViewProp(actor)
 
     renderWindow = vtk.vtkRenderWindow()
-    renderWindow.SetSize(1280,720)
+    renderWindow.SetSize(2048,1536)
     renderWindow.AddRenderer(renderer)
 
     renWinInteractor = vtk.vtkRenderWindowInteractor()
@@ -58,11 +61,11 @@ def render_actor(actor):
 #Renders the actor passed and sets the background color using r,g,b passed values
 def render_actor_background(actor, r, g, b):
     renderer = vtk.vtkRenderer()
-    renderer.SetBackground(r,g,b)
+    renderer.SetBackground(bg_color,bg_color,bg_color)
     renderer.AddViewProp(actor)
     
     renderWindow = vtk.vtkRenderWindow()
-    renderWindow.SetSize(1280,720)
+    renderWindow.SetSize(2048,1536)
     renderWindow.AddRenderer(renderer)
     
     renWinInteractor = vtk.vtkRenderWindowInteractor()
@@ -133,15 +136,19 @@ def create_cube_actor(size):
     cubeActor = vtk.vtkActor()
     cubeActor.SetMapper(cubeMapper)
     cubeActor.SetPosition(0.0, 0, 0)
-    cubeActor.GetProperty().SetColor(0, 0, 0)
+    cubeActor.GetProperty().SetColor(cube_color, cube_color, cube_color)
+    #cubeActor.GetProperty().VertexVisibilityOn()
+    #cubeActor.GetProperty().BackfaceCullingOn()
+    #cubeActor.GetProperty().FrontfaceCullingOn()
     cubeActor.GetProperty().SetRepresentationToWireframe()
-    
+    cubeActor.GetProperty().SetLineWidth(1)
+    cubeActor.GetProperty().LightingOff()
     
     return cubeActor
 
 
 #Creates a dynamic grid with the size of the simulation
-#Te size of the grid is imposed by the cube generated in the first steps
+#The size of the grid is imposed by the cube generated in the first steps
 def cube_axes(size):
     render = vtk.vtkRenderer()
 
@@ -152,10 +159,10 @@ def cube_axes(size):
 
     # Create a text property for both cube axes
     tprop = vtk.vtkTextProperty()
-    tprop.SetColor(0, 0, 0)
+    tprop.SetColor(layer_color, layer_color, layer_color)
     tprop.ShadowOn()
 
-    # Create a vtkCubeAx   esActor2D.  Use the outer edges of the bounding box to
+    # Create a vtkCubeAxesActor2D.  Use the outer edges of the bounding box to
     # draw the axes.  Add the actor to the renderer.
     axes = vtk.vtkCubeAxesActor2D()
     axes.SetInputConnection(cube.GetOutputPort())
@@ -163,8 +170,9 @@ def cube_axes(size):
     axes.SetLabelFormat("%6.4g")
     axes.SetFlyModeToOuterEdges()
     axes.SetFontFactor(0.8)
+    axes.GetAxisLabelTextProperty().SetColor(cube_color, cube_color, cube_color)
     axes.SetAxisTitleTextProperty(tprop)
     axes.SetAxisLabelTextProperty(tprop)
-    axes.GetProperty().SetColor(0.0, 0.0, 0.0)
-    
+    axes.GetProperty().SetColor(cube_color, cube_color, cube_color)
+
     return axes

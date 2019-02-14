@@ -9,6 +9,7 @@ import actor_manage as actor_man
 import image_saver as img_save
 from step_timer import vtkTimerCallback
 
+bg_color = 255
 
 #Renders the simulation of the file passed
 # path -> File path of the numpy array with the 3d data
@@ -27,13 +28,13 @@ def render_simulation(path, n_particles, first_step, last_step, min_Psi, max_Psi
     actor = actor_man.create_actor(path, n_particles, first_step, min_Psi, max_Psi, particles_size)
 
     renderer = vtk.vtkOpenGLRenderer()
-    renderer.SetBackground(255,255,255)
+    renderer.SetBackground(bg_color,bg_color,bg_color)
     renderer.AddViewProp(actor)
 
     cubeActor = actor_man.create_cube_actor(cube_size)
     renderer.AddViewProp(cubeActor)
-    cubeActor = actor_man.cube_axes(cube_size)
-    renderer.AddViewProp(cubeActor)
+    cubeAxes = actor_man.cube_axes(cube_size)
+    renderer.AddViewProp(cubeAxes)
 
     renderWindow = vtk.vtkRenderWindow()
     renderWindow.SetSize(1600,1200)
@@ -80,9 +81,9 @@ def render_simulation_for_multiprocess(path, n_particles, first_step, last_step,
     total_steps = last_step - first_step + 1
     
     renderer = vtk.vtkOpenGLRenderer()
-    renderer.SetBackground(255,255,255)
+    renderer.SetBackground(bg_color,bg_color,bg_color)
     renderWindow = vtk.vtkRenderWindow()
-    renderWindow.SetSize(1600,1200)
+    renderWindow.SetSize(2048,1536)
     #Disables the 3D render window
     renderWindow.SetOffScreenRendering(1);
     renWinInteractor = vtk.vtkRenderWindowInteractor()
@@ -90,12 +91,15 @@ def render_simulation_for_multiprocess(path, n_particles, first_step, last_step,
     for actual_step in range(0,total_steps):
         actor = actor_man.create_actor(path, n_particles, actual_step + first_step, min_Psi, max_Psi, particles_size)
         renderer.AddViewProp(actor)
+        
+        '''
         #Add cube to the render
         cubeActor = actor_man.create_cube_actor(cube_size)
         renderer.AddViewProp(cubeActor)
         cubeAxes = actor_man.cube_axes(cube_size)
         renderer.AddViewProp(cubeAxes)
-
+        '''
+        
         renderWindow.AddRenderer(renderer)
 
         renWinInteractor.SetRenderWindow(renderWindow)
@@ -105,6 +109,7 @@ def render_simulation_for_multiprocess(path, n_particles, first_step, last_step,
             print("Pr:", process_number, "  Step:", actual_step + first_step  )
     
         img_save.save_image_camera_setup(renderer, actual_step + first_step, camera, view)
+        #img_save.export_image(renderer, actual_step + first_step)
         renderer.RemoveAllViewProps()
 
     #elapsed_time = tm.time() - start_time

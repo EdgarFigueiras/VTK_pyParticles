@@ -51,9 +51,9 @@ class vtkTimerCallback():
         actor = actor_man.create_actor(self.path, self.n_particles, self.timer_count + self.first_step, self.min_Psi, self.max_Psi, self.particles_size)
         renderer.AddViewProp(actor)
         
-        cubeActor = actor_man.cube_axes(self.cube_size)
-        renderer.AddViewProp(cubeActor)
         cubeActor = actor_man.create_cube_actor(self.cube_size)
+        renderer.AddViewProp(cubeActor)
+        cubeActor = actor_man.cube_axes(self.cube_size)
         renderer.AddViewProp(cubeActor)
         
         camera_position = renderer.GetActiveCamera().GetPosition()
